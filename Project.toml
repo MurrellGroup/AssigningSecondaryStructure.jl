@@ -1,9 +1,16 @@
 name = "AssigningSecondaryStructure"
 uuid = "8ed43e74-60fb-4e11-99b9-91deed37aef7"
-authors = ["anton083 <anton.sollman@outlook.com> and contributors"]
-version = "1.0.0-DEV"
+authors = ["Shintaro Minami, Anton Oresten"]
+version = "0.0.1"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+PDBTools = "e29189f1-7114-4dbd-93d0-c5673a921a58"
+PaddedViews = "5432bcbf-9aad-5242-b902-cca2824c8663"
 
 [compat]
+PDBTools = "^0.15"
+PaddedViews = "^0.5"
 julia = "1"
 
 [extras]
