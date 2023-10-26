@@ -73,16 +73,20 @@ function get_hbond_map(
 end
 
 """
-    dssp(coord::Array{T, 3})
+    dssp(coords_chains::Vararg{Array{T, 3}, N})
 
-Returns a vector of integers denoting the secondary structure of each residue:
-- `1` for unassigned
-- `2` for helix
-- `3` for strand
+Takes a variable number of chains, each of which is a 3D array of shape `(residue_count, 4, 3)`.
+Returns a vector of vector of integers denoting the secondary structure of each residue in each chain:
+- `1` for loops
+- `2` for helices
+- `3` for strands
 Use the `sscodes` function to convert the integers to characters.
 """
-function dssp(coord::Array{T, 3}) where T
-    hbmap = get_hbond_map(coord)
+function dssp(coords_chains::Vararg{Array{T, 3}, N}) where {T, N}
+    chain_lengths = size.(coords_chains, 1)
+    coords = vcat(coords_chains...)
+
+    hbmap = get_hbond_map(coords)
     hbmap = permutedims(hbmap, (2, 1))  # Rearrange to "i:C=O, j:N-H" form
 
     # Identify turn 3, 4, 5
@@ -121,8 +125,14 @@ function dssp(coord::Array{T, 3}) where T
     strand = ladder
     loop = .!helix .& .!strand
     
-    onehot = findfirst.(eachrow(cat(loop, helix, strand, dims=2)))
+    ss_nums = findfirst.(eachrow(cat(loop, helix, strand, dims=2)))
+
+    ss_nums_chains = Vector{Int}[]
+    i = 0
+    for l in chain_lengths
+        push!(ss_nums_chains, ss_nums[i+1:i+l])
+    end
     
-    return onehot
+    return ss_nums_chains
 end
 
