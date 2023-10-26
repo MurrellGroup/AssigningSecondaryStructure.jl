@@ -5,14 +5,14 @@ export load_atom_coords, load_pdb_coords
 _coords(atom::Atom) = [atom.x, atom.y, atom.z]
 
 function collect_residues(atoms)
-    quadruplets = Vector{Atom}[]
+    residues = Vector{Atom}[]
     residue_atoms = Atom[]
     current_residue_number = resnum(atoms[1])  # Assuming residue_number function exists
 
     for atom in atoms
         if resnum(atom) != current_residue_number  # New residue started
             if length(residue_atoms) == 4
-                push!(quadruplets, copy(residue_atoms))
+                push!(residues, copy(residue_atoms))
             end
             empty!(residue_atoms)
             current_residue_number = resnum(atom)
@@ -25,13 +25,11 @@ function collect_residues(atoms)
 
     # Handling the last residue
     if length(residue_atoms) == 4
-        push!(quadruplets, copy(residue_atoms))
+        push!(residues, copy(residue_atoms))
     end
 
-    return quadruplets
+    return residues
 end
-
-
 
 function load_atom_coords(atoms::AbstractVector{<:Atom})
     residues = collect_residues(atoms)

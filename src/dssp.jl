@@ -1,6 +1,8 @@
 using LinearAlgebra
 using PaddedViews
 
+export dssp
+
 const Q1Q2_F = 0.084 * 332
 const DEFAULT_CUTOFF = -0.5
 const DEFAULT_MARGIN = 1.0
