@@ -6,30 +6,20 @@ _coords(atom::Atom) = [atom.x, atom.y, atom.z]
 
 function collect_residues(atoms)
     residues = Vector{Atom}[]
-    residue_atoms = Atom[]
-    current_residue_number = resnum(atoms[1])  # Assuming residue_number function exists
-
-    for atom in atoms
-        if resnum(atom) != current_residue_number  # New residue started
-            if length(residue_atoms) == 4
-                push!(residues, copy(residue_atoms))
-            end
-            empty!(residue_atoms)
-            current_residue_number = resnum(atom)
-        end
-        
-        if name(atom) in ["N", "CA", "C", "O"]
-            push!(residue_atoms, atom)
+    i = 1
+    while i <= length(atoms) - 3  # Ensure there are at least four atoms left to process
+        # Check if the next four atoms are N, CA, C, O in order
+        if name(atoms[i]) == "N" && name(atoms[i+1]) == "CA" && name(atoms[i+2]) == "C" && name(atoms[i+3]) == "O" &&
+                all(==(resnum(atoms[i])), resnum.(atoms[i+1:i+3]))
+            push!(residues, atoms[i:i+3])  # Add the quadruplet to residues
+            i += 4  # Skip to the next residue or atom
+        else
+            i += 1  # Skip to the next atom
         end
     end
-
-    # Handling the last residue
-    if length(residue_atoms) == 4
-        push!(residues, copy(residue_atoms))
-    end
-
     return residues
 end
+
 
 function load_atom_coords(atoms::AbstractVector{<:Atom})
     residues = collect_residues(atoms)
