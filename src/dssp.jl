@@ -78,11 +78,8 @@ end
     dssp(coords_chains::Vararg{AbstractArray{T, 3}, N})
 
 Takes a variable number of chains, each of which is a 3D array of shape `(residue_count, 4, 3)`.
-Returns a vector of vector of integers denoting the secondary structure of each residue in each chain:
-- `1` for loops
-- `2` for helices
-- `3` for strands
-Use the `sscodes` function to convert the integers to characters.
+Returns a Vector{Vector{SSClass}}, where the outer vector is the number of chains,
+and the inner vector is the secondary structure class of each residue.
 """
 function dssp(coords_chains::Vararg{AbstractArray{T, 3}, N}) where {T, N}
     chain_lengths = size.(coords_chains, 1)
