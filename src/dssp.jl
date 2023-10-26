@@ -7,14 +7,14 @@ const Q1Q2_F = 0.084 * 332
 const DEFAULT_CUTOFF = -0.5
 const DEFAULT_MARGIN = 1.0
 
-function _unfold(a::Array, window::Int, axis::Int)
+function _unfold(a::AbstractArray, window::Int, axis::Int)
     axis = axis < 0 ? ndims(a) + axis + 1 : axis
     idx = (0:window-1) .+ (1:size(a, axis) - window + 1)'
     unfolded = selectdim(a, axis, idx)
     return _moveaxis(unfolded, axis, ndims(unfolded))
 end
 
-function get_hydrogen_positions(coord::Array{T, 3}) where T <: Real
+function get_hydrogen_positions(coord::AbstractArray{T, 3}) where T <: Real
     vec_cn = coord[2:end, 1, :] .- coord[1:end-1, 3, :]
     vec_cn ./= mapslices(norm, vec_cn, dims=2)
     vec_can = coord[2:end, 1, :] .- coord[2:end, 2, :]
@@ -25,7 +25,7 @@ function get_hydrogen_positions(coord::Array{T, 3}) where T <: Real
 end
 
 function get_hbond_map(
-    coord::Array{T, 3};
+    coord::AbstractArray{T, 3};
     cutoff::Float64 = DEFAULT_CUTOFF,
     margin::Float64 = DEFAULT_MARGIN,
     return_e::Bool = false,
@@ -75,7 +75,7 @@ function get_hbond_map(
 end
 
 """
-    dssp(coords_chains::Vararg{Array{T, 3}, N})
+    dssp(coords_chains::Vararg{AbstractArray{T, 3}, N})
 
 Takes a variable number of chains, each of which is a 3D array of shape `(residue_count, 4, 3)`.
 Returns a vector of vector of integers denoting the secondary structure of each residue in each chain:
@@ -84,7 +84,7 @@ Returns a vector of vector of integers denoting the secondary structure of each 
 - `3` for strands
 Use the `sscodes` function to convert the integers to characters.
 """
-function dssp(coords_chains::Vararg{Array{T, 3}, N}) where {T, N}
+function dssp(coords_chains::Vararg{AbstractArray{T, 3}, N}) where {T, N}
     chain_lengths = size.(coords_chains, 1)
     coords = vcat(coords_chains...)
 
@@ -127,14 +127,14 @@ function dssp(coords_chains::Vararg{Array{T, 3}, N}) where {T, N}
     strand = ladder
     loop = .!helix .& .!strand
     
-    ss_nums = findfirst.(eachrow(cat(loop, helix, strand, dims=2)))
+    classes = SSClass.(findfirst.(eachrow(cat(loop, helix, strand, dims=2))))
 
-    ss_nums_chains = Vector{Int}[]
+    classes_chains = Vector{SSClass}[]
     i = 0
     for l in chain_lengths
-        push!(ss_nums_chains, ss_nums[i+1:i+l])
+        push!(classes_chains, classes[i+1:i+l])
     end
     
-    return ss_nums_chains
+    return classes_chains
 end
 

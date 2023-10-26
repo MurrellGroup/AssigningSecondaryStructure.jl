@@ -1,8 +1,8 @@
 module AssigningSecondaryStructure
 
+include("ssclass.jl")
 include("utils.jl")
 include("dssp.jl")
 include("pdb.jl")
-include("ss.jl")
 
 end
