@@ -14,7 +14,7 @@ function _unfold(a::AbstractArray, window::Int, axis::Int)
     return _moveaxis(unfolded, axis, ndims(unfolded))
 end
 
-function get_hydrogen_positions(coord::AbstractArray{T, 3}) where T <: Real
+function _get_hydrogen_positions(coord::AbstractArray{T, 3}) where T <: Real
     vec_cn = coord[2:end, 1, :] .- coord[1:end-1, 3, :]
     vec_cn ./= mapslices(norm, vec_cn, dims=2)
     vec_can = coord[2:end, 1, :] .- coord[2:end, 2, :]
@@ -24,7 +24,7 @@ function get_hydrogen_positions(coord::AbstractArray{T, 3}) where T <: Real
     return coord[2:end, 1, :] .+ 1.01 .* vec_nh
 end
 
-function get_hbond_map(
+function _get_hbond_map(
     coord::AbstractArray{T, 3};
     cutoff::Float64 = DEFAULT_CUTOFF,
     margin::Float64 = DEFAULT_MARGIN,
@@ -36,7 +36,7 @@ function get_hbond_map(
     cpos = coord[1:end-1, 3, :]
     opos = coord[1:end-1, 4, :]
     npos = coord[2:end, 1, :]
-    hpos = get_hydrogen_positions(coord)
+    hpos = _get_hydrogen_positions(coord)
 
     cmap = repeat(reshape(cpos, 1, :, 3), outer=(residue_count-1, 1, 1))
     omap = repeat(reshape(opos, 1, :, 3), outer=(residue_count-1, 1, 1))
@@ -77,15 +77,14 @@ end
 """
     dssp(coords_chains::Vararg{AbstractArray{T, 3}, N})
 
-Takes a variable number of chains, each of which is a 3D array of shape `(residue_count, 4, 3)`.
+Takes a variable number of chains, each of which is a 3D array of shape `(3, 4, residue_count)`.
 Returns a Vector{Vector{SSClass}}, where the outer vector is the number of chains,
 and the inner vector is the secondary structure class of each residue.
 """
-function dssp(coords_chains::Vararg{AbstractArray{T, 3}, N}) where {T, N}
-    chain_lengths = size.(coords_chains, 1)
-    coords = vcat(coords_chains...)
+function dssp(coords::AbstractArray{T, 3}) where T
+    coords = permutedims(coords, (3, 2, 1))
 
-    hbmap = get_hbond_map(coords)
+    hbmap = _get_hbond_map(coords)
     hbmap = permutedims(hbmap, (2, 1))  # Rearrange to "i:C=O, j:N-H" form
 
     # Identify turn 3, 4, 5
@@ -125,6 +124,14 @@ function dssp(coords_chains::Vararg{AbstractArray{T, 3}, N}) where {T, N}
     loop = .!helix .& .!strand
     
     classes = SSClass.(findfirst.(eachrow(cat(loop, helix, strand, dims=2))))
+    
+    return classes
+end
+
+function dssp(coords_chains::Vector{<:AbstractArray{T, 3}}) where T
+    chain_lengths = size.(coords_chains, 3)
+    coords = cat(coords_chains..., dims=3)
+    classes = dssp(coords)
 
     classes_chains = Vector{SSClass}[]
     i = 0
@@ -134,4 +141,3 @@ function dssp(coords_chains::Vararg{AbstractArray{T, 3}, N}) where {T, N}
     
     return classes_chains
 end
-

@@ -23,10 +23,10 @@ end
 
 function load_atom_coords(atoms::AbstractVector{<:Atom})
     residues = collect_residues(atoms)
-    coords = zeros(Float32, (length(residues), 4, 3))
+    coords = zeros(Float32, (3, 4, length(residues)))
     for (i, residue) in enumerate(residues)
         for (j, atom) in enumerate(residue)
-            coords[i, j, :] = _coords(atom)
+            coords[:, j, i] = _coords(atom)
         end
     end
     return coords
@@ -53,5 +53,5 @@ Assumes that each residue in the PDB file starts with four atoms: N, CA, C, O.
 """
 function dssp(pdb_file::String)
     coords_chains = load_pdb_coords(pdb_file)
-    return dssp(coords_chains...)
+    return dssp(coords_chains)
 end
