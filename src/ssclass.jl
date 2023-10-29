@@ -7,6 +7,7 @@ end
 const CHAR_VEC = ['-', 'H', 'E']
 Base.convert(::Type{Char}, cls::SSClass) = CHAR_VEC[cls.n]
 Base.string(ss::Vector{SSClass}) = join(convert(Char, cls) for cls in ss)
+Base.convert(::Type{T}, cls::SSClass) where T <: Real = convert(T, cls.n)
 
 const Loop   = SSClass(1)
 const Helix  = SSClass(2)
