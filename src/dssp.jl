@@ -1,7 +1,9 @@
-using LinearAlgebra
-using PaddedViews
+# Ported from https://github.com/ShintaroMinami/PyDSSP
 
 export dssp
+
+using LinearAlgebra
+using PaddedViews
 
 const Q1Q2_F = 0.084 * 332
 const DEFAULT_CUTOFF = -0.5
@@ -74,14 +76,18 @@ function _get_hbond_map(
     return hbond_map
 end
 
+# currently not differentiable cause we use bitwise operators
 """
-    dssp(coords_chains::Vararg{AbstractArray{T, 3}, N})
+    dssp(coords)
 
 Takes a variable number of chains, each of which is a 3D array of shape `(3, 4, residue_count)`.
 Returns a Vector{Vector{SSClass}}, where the outer vector is the number of chains,
 and the inner vector is the secondary structure class of each residue.
 """
 function dssp(coords::AbstractArray{T, 3}) where T
+    @assert size(coords, 1) == 3
+    @assert size(coords, 2) == 4
+
     coords = permutedims(coords, (3, 2, 1))
 
     hbmap = _get_hbond_map(coords)
@@ -96,48 +102,45 @@ function dssp(coords::AbstractArray{T, 3}) where T
     h3 = collect(_pad(false, @view(turn3[1:end-1]) .& @view(turn3[2:end]), (1, 3)))
     h4 = collect(_pad(false, @view(turn4[1:end-1]) .& @view(turn4[2:end]), (1, 4)))
     h5 = collect(_pad(false, @view(turn5[1:end-1]) .& @view(turn5[2:end]), (1, 5)))
-    
-    @assert length(h3) == length(h4) == length(h5)
+
     # Helix4 first
     helix4 = h4 .| circshift(h4, 1) .| circshift(h4, 2) .| circshift(h4, 3)
     h3 .&= .!circshift(helix4, 1) .& .!helix4
     h5 .&= .!circshift(helix4, 1) .& .!helix4
-    
+
     helix3 = h3 .| circshift(h3, 1) .| circshift(h3, 2)
     helix5 = h5 .| circshift(h5, 1) .| circshift(h5, 2) .| circshift(h5, 3) .| circshift(h5, 4)
 
     # Identify bridge
     unfoldmap = _unfold(_unfold(hbmap, 3, -2), 3, -2) .> 0
     unfoldmap_rev = permutedims(unfoldmap, (2, 1, 3, 4))
-    
+
     p_bridge = (unfoldmap[:, :, 1, 2] .& unfoldmap_rev[:, :, 2, 3]) .| (unfoldmap_rev[:, :, 1, 2] .& unfoldmap[:, :, 2, 3])
     p_bridge = _pad(false, p_bridge, (1,1), (1,1))
-    
+
     a_bridge = (unfoldmap[:, :, 2, 2] .& unfoldmap_rev[:, :, 2, 2]) .| (unfoldmap[:, :, 1, 3] .& unfoldmap_rev[:, :, 1, 3])
     a_bridge = _pad(false, a_bridge, (1,1), (1,1))
-    
+
     # Ladder
     ladder = dropdims(reduce(|, p_bridge .| a_bridge, dims=2), dims=2)
     # H, E, L of C3
     helix = helix3 .| helix4 .| helix5
     strand = ladder
     loop = .!helix .& .!strand
-    
-    classes = SSClass.(findfirst.(eachrow(cat(loop, helix, strand, dims=2))))
-    
-    return classes
+
+    num_vector = findfirst.(eachrow(hcat(loop, helix, strand)))
+
+    return num_vector
 end
 
 function dssp(coords_chains::Vector{<:AbstractArray{T, 3}}) where T
-    chain_lengths = size.(coords_chains, 3)
-    coords = cat(coords_chains..., dims=3)
-    classes = dssp(coords)
+    lengths = size.(coords_chains, 3)
 
-    classes_chains = Vector{SSClass}[]
-    i = 0
-    for l in chain_lengths
-        push!(classes_chains, classes[i+1:i+l])
-    end
-    
-    return classes_chains
+    coords = cat(coords_chains..., dims=3)
+    num_vector = dssp(coords)
+
+    cum_indices = cumsum(lengths)
+    num_vectors_by_chain = [num_vector[get(cum_indices, n-1, 0)+1:cum_indices[n]] for n in 1:length(lengths)]
+
+    return num_vectors_by_chain
 end
