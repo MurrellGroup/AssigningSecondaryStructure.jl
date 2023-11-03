@@ -12,11 +12,8 @@ julia> dssp("test/data/1ASS.pdb") # 1 chain
 1-element Vector{Vector{Int64}}:
  [1, 1, 1, 3, 3, 3, 1, 1, 1, 1  …  3, 3, 3, 3, 3, 3, 3, 1, 1, 1]
 
-julia> dssp("test/data/3GOU.pdb") # 2 chains
+julia> dssp("test/data/1ZAK.pdb") # 2 chains
 2-element Vector{Vector{Int64}}:
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
 ```
-
-## References
-- [Kabsch W, Sander C (1983). Dictionary of protein secondary structure: pattern recognition of hydrogen-bonded and geometrical features. Biopolymers. 22 (12): 2577–2637.](https://doi.org/10.1002/bip.360221211)

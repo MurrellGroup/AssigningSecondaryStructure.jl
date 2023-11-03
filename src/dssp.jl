@@ -77,13 +77,6 @@ function _get_hbond_map(
 end
 
 # currently not differentiable cause we use bitwise operators
-"""
-    dssp(coords)
-
-Takes a variable number of chains, each of which is a 3D array of shape `(3, 4, residue_count)`.
-Returns a Vector{Vector{SSClass}}, where the outer vector is the number of chains,
-and the inner vector is the secondary structure class of each residue.
-"""
 function dssp(coords::AbstractArray{T, 3}) where T
     @assert size(coords, 1) == 3
     @assert size(coords, 2) == 4
@@ -133,6 +126,13 @@ function dssp(coords::AbstractArray{T, 3}) where T
     return num_vector
 end
 
+"""
+    dssp(coords_chains)
+
+Takes a vector of chains, each of which is a 3D array of shape `(3, 4, residue_count)`
+where the first dimension is the x, y, z coordinates, the second dimension is the atom type,
+in the order N, CA, C, O, and the third dimension is the residue number.
+"""
 function dssp(coords_chains::Vector{<:AbstractArray{T, 3}}) where T
     lengths = size.(coords_chains, 3)
 

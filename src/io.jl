@@ -31,7 +31,7 @@ function chain_coords(id::AbstractString, atoms::Vector{PDBTools.Atom})
 end
 
 """
-    load_pdb_backbones(filename::String)
+    load_pdb_backbone_coords(filename::String)
 
 Assumes that each residue starts with four atoms: N, CA, C, O.
 """
@@ -43,6 +43,17 @@ function load_pdb_backbone_coords(filename::String)
     return chains
 end
 
+"""
+    dssp(filename)
+
+Returns a vector of vectors of integers, each of which is the secondary structure assignment
+for the corresponding chain and their respective residues.
+    
+The integers are assigned as follows:
+- 1: loop
+- 2: helix
+- 3: strand
+"""
 function dssp(filename::String)
     chains = load_pdb_backbone_coords(filename)
     return dssp(chains)
