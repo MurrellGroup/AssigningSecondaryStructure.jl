@@ -30,7 +30,6 @@ function _get_hbond_map(
     coord::AbstractArray{T, 3};
     cutoff::Float64 = DEFAULT_CUTOFF,
     margin::Float64 = DEFAULT_MARGIN,
-    return_e::Bool = false,
 ) where T <: Real
     residue_count, atoms_per_residue, _ = size(coord)
     @assert atoms_per_residue == 4
@@ -53,10 +52,6 @@ function _get_hbond_map(
     arr = Q1Q2_F .* (1.0 ./ d_on .+ 1.0 ./ d_ch .- 1.0 ./ d_oh .- 1.0 ./ d_cn)
 
     e = _pad(0.0, arr, (1,0), (0,1))
-
-    if return_e
-        return e
-    end
 
     local_mask = trues(residue_count, residue_count)
     for i in 1:residue_count
