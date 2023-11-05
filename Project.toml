@@ -11,7 +11,7 @@ PaddedViews = "5432bcbf-9aad-5242-b902-cca2824c8663"
 [compat]
 PDBTools = "^0.15"
 PaddedViews = "^0.5"
-julia = "1"
+julia = "^1.5"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
