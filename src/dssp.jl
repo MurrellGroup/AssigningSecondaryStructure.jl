@@ -1,7 +1,5 @@
 # Ported from https://github.com/ShintaroMinami/PyDSSP
 
-export dssp
-
 using LinearAlgebra
 using PaddedViews
 

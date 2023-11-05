@@ -1,3 +1,5 @@
+export assign_secondary_structure!, assign_secondary_structure
+
 function assign_secondary_structure! end
 
 """
