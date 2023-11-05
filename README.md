@@ -8,11 +8,11 @@ This package provides a quick way to assign secondary structure using a simplifi
 This is not a complete implementation of DSSP, as it only assigns loops (1), helices (2), and strands (3). It is not as accurate as the original, but is significantly faster. For the full DSSP algorithm, check out [BioStructures.jl](https://github.com/BioJulia/BioStructures.jl) or [ProteinSecondaryStructures.jl](https://github.com/m3g/ProteinSecondaryStructures.jl), which both use the [DSSP_jll.jl](https://docs.juliahub.com/General/DSSP_jll/stable/) package that was auto-generated using [BinaryBuilder.jl](https://github.com/JuliaPackaging/BinaryBuilder.jl). 
 
 ```julia
-julia> dssp("test/data/1ASS.pdb") # 1 chain
+julia> assign_secondary_structure("test/data/1ASS.pdb") # 1 chain
 1-element Vector{Vector{Int64}}:
  [1, 1, 1, 3, 3, 3, 1, 1, 1, 1  …  3, 3, 3, 3, 3, 3, 3, 1, 1, 1]
 
-julia> dssp("test/data/1ZAK.pdb") # 2 chains
+julia> assign_secondary_structure("test/data/1ZAK.pdb") # 2 chains
 2-element Vector{Vector{Int64}}:
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]

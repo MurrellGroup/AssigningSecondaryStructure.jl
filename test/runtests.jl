@@ -22,17 +22,19 @@ ss_composition(ss::Vector{Int}) = [count(==(i), ss) for i in 1:3]
     end
 
     @testset "DSSP" begin
+
         @testset "1ASS" begin
-            ss = dssp("data/1ASS.pdb")
+            ss = assign_secondary_structure("data/1ASS.pdb")
             @test length(ss) == 1
             @test ss_composition.(ss) == [[60, 53, 39]]
         end
         
         @testset "1ZAK" begin
-            ss = dssp("data/1ZAK.pdb")
+            ss = assign_secondary_structure("data/1ZAK.pdb")
             @test length(ss) == 2
             @test ss_composition.(ss) == [[72, 116, 32], [72, 116, 32]]
         end
+
     end
 
 end

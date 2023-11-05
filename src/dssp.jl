@@ -1,7 +1,5 @@
 # Ported from https://github.com/ShintaroMinami/PyDSSP
 
-export dssp
-
 using LinearAlgebra
 using PaddedViews
 
@@ -71,7 +69,7 @@ function _get_hbond_map(
     return hbond_map
 end
 
-# currently not differentiable cause we use bitwise operators
+# not differentiable like the PyDSSP version cause we use bitwise operators
 function dssp(coords::AbstractArray{T, 3}) where T
     @assert size(coords, 1) == 3
     @assert size(coords, 2) == 4
@@ -119,23 +117,4 @@ function dssp(coords::AbstractArray{T, 3}) where T
     num_vector = findfirst.(eachrow(hcat(loop, helix, strand)))
 
     return num_vector
-end
-
-"""
-    dssp(coords_chains)
-
-Takes a vector of chains, each of which is a 3D array of shape `(3, 4, residue_count)`
-where the first dimension is the x, y, z coordinates, the second dimension is the atom type,
-in the order N, CA, C, O, and the third dimension is the residue number.
-"""
-function dssp(coords_chains::Vector{<:AbstractArray{T, 3}}) where T
-    lengths = size.(coords_chains, 3)
-
-    coords = cat(coords_chains..., dims=3)
-    num_vector = dssp(coords)
-
-    cum_indices = cumsum(lengths)
-    num_vectors_by_chain = [num_vector[get(cum_indices, n-1, 0)+1:cum_indices[n]] for n in 1:length(lengths)]
-
-    return num_vectors_by_chain
 end
