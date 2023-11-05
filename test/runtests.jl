@@ -22,6 +22,7 @@ ss_composition(ss::Vector{Int}) = [count(==(i), ss) for i in 1:3]
     end
 
     @testset "DSSP" begin
+
         @testset "1ASS" begin
             ss = dssp("data/1ASS.pdb")
             @test length(ss) == 1
@@ -33,6 +34,7 @@ ss_composition(ss::Vector{Int}) = [count(==(i), ss) for i in 1:3]
             @test length(ss) == 2
             @test ss_composition.(ss) == [[72, 116, 32], [72, 116, 32]]
         end
+
     end
 
 end

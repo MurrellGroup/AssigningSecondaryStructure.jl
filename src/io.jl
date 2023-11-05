@@ -42,19 +42,3 @@ function load_pdb_backbone_coords(filename::String)
     chains = [chain_coords(id, atoms) for id in ids]
     return chains
 end
-
-"""
-    assign_secondary_structure(filename)
-
-Returns a vector of vectors of integers, each of which is the secondary structure assignment
-for the corresponding chain and their respective residues.
-    
-The integers are assigned as follows:
-- 1: loop
-- 2: helix
-- 3: strand
-"""
-function assign_secondary_structure(filename::String)
-    chains = load_pdb_backbone_coords(filename)
-    return dssp(chains)
-end
