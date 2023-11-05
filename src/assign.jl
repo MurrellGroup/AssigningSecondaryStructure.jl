@@ -35,5 +35,5 @@ The integers are assigned as follows:
 """
 function assign_secondary_structure(filename::String)
     chains = load_pdb_backbone_coords(filename)
-    return dssp(chains)
+    return assign_secondary_structure(chains)
 end
