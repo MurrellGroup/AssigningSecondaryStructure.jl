@@ -71,7 +71,7 @@ function _get_hbond_map(
     return hbond_map
 end
 
-# currently not differentiable cause we use bitwise operators
+# not differentiable like the PyDSSP version cause we use bitwise operators
 function dssp(coords::AbstractArray{T, 3}) where T
     @assert size(coords, 1) == 3
     @assert size(coords, 2) == 4
@@ -122,13 +122,14 @@ function dssp(coords::AbstractArray{T, 3}) where T
 end
 
 """
-    dssp(coords_chains)
+    assign_secondary_structure(coords_chains)
 
-Takes a vector of chains, each of which is a 3D array of shape `(3, 4, residue_count)`
-where the first dimension is the x, y, z coordinates, the second dimension is the atom type,
-in the order N, CA, C, O, and the third dimension is the residue number.
+Given a vector of chains, each represented as a 3-dimensional array of size 3x4xL, this function assigns the secondary structure to each residue. In these arrays:
+- The first dimension corresponds to the x, y, and z coordinates of the atoms.
+- The second dimension represents the atom type, ordered as N, CA, C, and O.
+- The third dimension specifies the residue number in the chain.
 """
-function dssp(coords_chains::Vector{<:AbstractArray{T, 3}}) where T
+function assign_secondary_structure(coords_chains::Vector{<:AbstractArray{T, 3}}) where T
     lengths = size.(coords_chains, 3)
 
     coords = cat(coords_chains..., dims=3)

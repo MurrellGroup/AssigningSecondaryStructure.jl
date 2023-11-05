@@ -44,7 +44,7 @@ function load_pdb_backbone_coords(filename::String)
 end
 
 """
-    dssp(filename)
+    assign_secondary_structure(filename)
 
 Returns a vector of vectors of integers, each of which is the secondary structure assignment
 for the corresponding chain and their respective residues.
@@ -54,7 +54,7 @@ The integers are assigned as follows:
 - 2: helix
 - 3: strand
 """
-function dssp(filename::String)
+function assign_secondary_structure(filename::String)
     chains = load_pdb_backbone_coords(filename)
     return dssp(chains)
 end
