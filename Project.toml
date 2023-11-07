@@ -9,6 +9,7 @@ PDBTools = "e29189f1-7114-4dbd-93d0-c5673a921a58"
 PaddedViews = "5432bcbf-9aad-5242-b902-cca2824c8663"
 
 [compat]
+LinearAlgebra = "1"
 PDBTools = "^0.15"
 PaddedViews = "^0.5"
 julia = "^1.7"
