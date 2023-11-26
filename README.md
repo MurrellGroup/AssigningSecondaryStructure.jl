@@ -37,6 +37,6 @@ Note: The `assign_secondary_structure` function can also take a vector of atom c
 
 ## Acknowledgements
 
-This package was ported from the [PyDSSP](https://github.com/ShintaroMinami/PyDSSP), created by Shintaro Minami. The creation of this package would have been much more difficult without the original Python code as reference.
+This package was ported from the [PyDSSP](https://github.com/ShintaroMinami/PyDSSP), created by Shintaro Minami. Creating this package would have been much more difficult without the original Python code as reference.
 
-[^1] - Read about DSSP codes on Wikipedia: [Protein secondary structure](https://en.wikipedia.org/wiki/Protein_secondary_structure)
+[^1]: Read about DSSP codes on Wikipedia: [Protein secondary structure](https://en.wikipedia.org/wiki/Protein_secondary_structure#DSSP_classification)
