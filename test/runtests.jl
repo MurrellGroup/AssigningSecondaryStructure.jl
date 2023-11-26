@@ -1,7 +1,7 @@
 using AssigningSecondaryStructure
 using Test
 
-ss_composition(ss::Vector{Int}) = [count(==(i), ss) for i in 1:3]
+ss_composition(ss::Vector{Char}) = [count(==(code), ss) for code in ['-', 'H', 'E']]
 
 @testset "AssigningSecondaryStructure.jl" begin
 
@@ -26,7 +26,7 @@ ss_composition(ss::Vector{Int}) = [count(==(i), ss) for i in 1:3]
         @testset "1ASS" begin
             ss = assign_secondary_structure("data/1ASS.pdb")
             @test length(ss) == 1
-            @test ss_composition.(ss) == [[60, 53, 39]]
+            @test ss_composition.(ss) == [[63, 53, 36]]
         end
         
         @testset "1ZAK" begin
