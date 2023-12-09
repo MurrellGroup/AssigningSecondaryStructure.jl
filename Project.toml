@@ -1,7 +1,7 @@
 name = "AssigningSecondaryStructure"
 uuid = "8ed43e74-60fb-4e11-99b9-91deed37aef7"
 authors = ["Shintaro Minami, Anton Oresten"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
