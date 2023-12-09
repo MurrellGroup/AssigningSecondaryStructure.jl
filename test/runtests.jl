@@ -23,6 +23,13 @@ ss_composition(ss::Vector{Char}) = [count(==(code), ss) for code in ['-', 'H', '
 
     @testset "DSSP" begin
 
+        @testset "dssp" begin
+            coords = load_pdb_backbone_coords("data/1ASS.pdb")[1]
+            @test AssigningSecondaryStructure.dssp(coords[:, :, 35:39]) == [1, 1, 1, 1, 1] # minimum helix length is 4
+            @test AssigningSecondaryStructure.dssp(coords[:, :, 35:40]) == [1, 2, 2, 2, 2, 1] # ends don't count towards helix length :shrug:
+            @test AssigningSecondaryStructure.dssp(coords[:, :, 35:41]) == [1, 2, 2, 2, 2, 2, 1]
+        end
+
         @testset "1ASS" begin
             ss = assign_secondary_structure("data/1ASS.pdb")
             @test length(ss) == 1

@@ -74,6 +74,11 @@ function dssp(coords::AbstractArray{T, 3}) where T
     @assert size(coords, 1) == 3
     @assert size(coords, 2) == 4
 
+    N = size(coords, 3)
+    if N < 6
+        coords = cat(coords, fill(Inf, 3, 4, 6-N), dims=3)
+    end
+
     coords = permutedims(coords, (3, 2, 1))
 
     hbmap = _get_hbond_map(coords)
@@ -114,7 +119,7 @@ function dssp(coords::AbstractArray{T, 3}) where T
     strand = ladder
     loop = .!helix .& .!strand
 
-    num_vector = findfirst.(eachrow(hcat(loop, helix, strand)))
+    num_vector = findfirst.(eachrow(hcat(loop, helix, strand)))[1:N]
 
     return num_vector
 end
