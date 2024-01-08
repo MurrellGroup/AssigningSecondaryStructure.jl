@@ -1,8 +1,9 @@
 module AssigningSecondaryStructure
 
+import Backboner
+
 include("utils.jl")
 include("dssp.jl")
-include("io.jl")
 include("assign.jl")
 
 end

@@ -1,4 +1,41 @@
-# These functions come from numpy and were used to port the code from python to julia.
+import PDBTools
+
+function oxygen_coord_matrix(chain_id::AbstractString, oxygens::Vector{PDBTools.Atom})
+    chain_oxygens = filter(a -> PDBTools.chain(a) == chain_id, oxygens)
+    coords = Matrix{Float32}(undef, 3, length(chain_oxygens))
+    for (i, atom) in enumerate(chain_oxygens)
+        coords[:, i] = [atom.x, atom.y, atom.z]
+    end
+    return coords
+end
+
+# Alternative to oxygen_coords function in src/protein/oxygen.jl to get exact coordinates of oxygen atoms
+function pdb_oxygen_coords(filename::String)
+    atoms = PDBTools.readPDB(filename)
+    chain_ids = unique(PDBTools.chain.(atoms))
+    oxygens = PDBTools.Atom[]
+    i = 1
+    while i <= length(atoms) - 3
+        if atoms[i].name == "N" && atoms[i+1].name == "CA" && atoms[i+2].name == "C" && atoms[i+3].name == "O"
+            push!(oxygens, atoms[i+3])
+            i += 4
+        else
+            i += 1
+        end
+    end
+    oxygen_coord_matrices = [oxygen_coord_matrix(chain_id, oxygens) for chain_id in chain_ids]
+    return oxygen_coord_matrices
+end
+
+function cat_chains_oxygens(chains::AbstractVector{Backboner.Protein.Chain}, oxygen_coords_vector::AbstractVector{<:AbstractMatrix})
+    return [cat(reshape(chain.backbone.coords, 3, 3, :), reshape(oxygen, 3, 1, :), dims=2) for (chain, oxygen) in zip(chains, oxygen_coords_vector)]
+end
+
+function pdb_to_ncaco(pdbfile::String)
+    chains = Backboner.Protein.readpdb(pdbfile)
+    oxygen_coords_vector = pdb_oxygen_coords(pdbfile)
+    return cat_chains_oxygens(chains, oxygen_coords_vector)
+end
 
 const NUM_TO_SS_CODE = Dict(
     1 => '-',
@@ -35,6 +72,7 @@ function clean_secondary_structure!(ss_vector::Vector{Char})
     return ss_vector
 end
 
+# These functions come from numpy and were used to port the code from python to julia.
 
 function _pad(x::T, arr::AbstractArray{T, N}, paddings::Vararg{Tuple{Int, Int}, N}) where {T, N}
     @assert ndims(arr) == length(paddings)
