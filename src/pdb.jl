@@ -38,7 +38,4 @@ function load_pdb_chains(filename::AbstractString)
     return chains
 end
 
-function AssigningSecondaryStructure.assign_secondary_structure(filename::AbstractString)
-    chains = load_pdb_chains(filename)
-    return AssigningSecondaryStructure.assign_secondary_structure(chains)
-end
+assign_secondary_structure(filename::AbstractString) = assign_secondary_structure(load_pdb_chains(filename))
