@@ -1,8 +1,8 @@
+export load_pdb_chains
+
 import PDBTools
 
-export load_pdb_backbone_coords
-
-function collect_ncaco(atoms::Vector{PDBTools.Atom})
+function collect_residues(atoms::Vector{PDBTools.Atom})
     residues = Vector{PDBTools.Atom}[]
     i = 1
     while i <= length(atoms) - 3 # Ensure there are at least four atoms left to process
@@ -20,7 +20,7 @@ end
 
 function chain_coords(id::AbstractString, atoms::Vector{PDBTools.Atom})
     chain_atoms = filter(a -> PDBTools.chain(a) == id, atoms)
-    residues = collect_ncaco(chain_atoms)
+    residues = collect_residues(chain_atoms)
     coords = zeros(Float32, (3, 4, length(residues)))
     for (i, residue) in enumerate(residues)
         for (j, atom) in enumerate(residue)
@@ -30,15 +30,15 @@ function chain_coords(id::AbstractString, atoms::Vector{PDBTools.Atom})
     return coords
 end
 
-"""
-    load_pdb_backbone_coords(filename::String)
-
-Assumes that each residue starts with four atoms: N, CA, C, O.
-"""
-function load_pdb_backbone_coords(filename::String)
+function load_pdb_chains(filename::AbstractString)
     atoms = PDBTools.readPDB(filename)
     filter!(a -> a.name in ["N", "CA", "C", "O"], atoms)
     ids = unique(PDBTools.chain.(atoms))
     chains = [chain_coords(id, atoms) for id in ids]
     return chains
+end
+
+function AssigningSecondaryStructure.assign_secondary_structure(filename::AbstractString)
+    chains = load_pdb_chains(filename)
+    return AssigningSecondaryStructure.assign_secondary_structure(chains)
 end
