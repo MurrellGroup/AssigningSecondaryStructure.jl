@@ -10,7 +10,7 @@ PaddedViews = "5432bcbf-9aad-5242-b902-cca2824c8663"
 
 [compat]
 LinearAlgebra = "1"
-PDBTools = "0.15"
+PDBTools = "0.15, 1"
 PaddedViews = "0.5"
 julia = "^1.7"
 
