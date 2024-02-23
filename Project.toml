@@ -1,7 +1,7 @@
 name = "AssigningSecondaryStructure"
 uuid = "8ed43e74-60fb-4e11-99b9-91deed37aef7"
 authors = ["Anton Oresten, Shintaro Minami"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -10,7 +10,7 @@ PaddedViews = "5432bcbf-9aad-5242-b902-cca2824c8663"
 
 [compat]
 LinearAlgebra = "1"
-PDBTools = "0.15"
+PDBTools = "1"
 PaddedViews = "0.5"
 julia = "^1.7"
 
