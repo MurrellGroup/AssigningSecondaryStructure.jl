@@ -44,4 +44,6 @@ ss_composition(ss::Vector{Int}) = [count(==(code), ss) for code in 1:3]
 
     end
 
+    include("BackbonerExt.jl")
+
 end
