@@ -27,3 +27,12 @@ function assign_secondary_structure(coords_chains::Vector{<:AbstractArray{T, 3}}
 
     return code_vectors_by_chain
 end
+
+import Backboner, Backboner.Protein
+import Backboner.Protein: ncaco_coords, readpdb
+
+assign_secondary_structure(chains::Vector{Protein.Chain}) = assign_secondary_structure(ncaco_coords.(chains))
+
+assign_secondary_structure(chain::Protein.Chain) = assign_secondary_structure([chain])[1]
+
+assign_secondary_structure(filename::AbstractString) = assign_secondary_structure(readpdb(filename))

@@ -1,7 +1,7 @@
 # These functions come from numpy and were used to port the code from python to julia.
 
 function _pad(x::T, arr::AbstractArray{T, N}, paddings::Vararg{Tuple{Int, Int}, N}) where {T, N}
-    @assert ndims(arr) == length(paddings)
+    ndims(arr) == length(paddings) || throw(DimensionMismatch("Number of paddings must match the number of dimensions of the array"))
     new_size = Int[]
     offsets = UnitRange{Int}[]
     for (n, (a,b)) in zip(size(arr), paddings)
