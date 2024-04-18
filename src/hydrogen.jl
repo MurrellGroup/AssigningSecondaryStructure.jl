@@ -1,11 +1,14 @@
-function get_hydrogen_positions(coords::AbstractArray{T, 3}) where T <: Real
-    vec_cn = coords[2:end, 1, :] .- coords[1:end-1, 3, :]
+function get_hydrogen_positions(coords::AbstractArray{T, 3}; permute=true) where T <: Real
+    _, atoms_per_residue, residue_count = size(coords)
+    atoms_per_residue == 4 || throw(DimensionMismatch("Expected 4 atoms per residue, got $atoms_per_residue"))
+    permute && (coords_p = permutedims(coords, (3, 2, 1)))
+    vec_cn = coords_p[2:end, 1, :] .- coords_p[1:end-1, 3, :]
     vec_cn ./= mapslices(norm, vec_cn, dims=2)
-    vec_can = coords[2:end, 1, :] .- coords[2:end, 2, :]
+    vec_can = coords_p[2:end, 1, :] .- coords_p[2:end, 2, :]
     vec_can ./= mapslices(norm, vec_can, dims=2)
     vec_nh = vec_cn .+ vec_can
     vec_nh ./= mapslices(norm, vec_nh, dims=2)
-    return coords[2:end, 1, :] .+ 1.01 .* vec_nh
+    return coords_p[2:end, 1, :] .+ 1.01 .* vec_nh
 end
 
 function get_hbond_map(
@@ -13,12 +16,14 @@ function get_hbond_map(
     cutoff::Float64 = DEFAULT_CUTOFF,
     margin::Float64 = DEFAULT_MARGIN,
 ) where T <: Real
-    residue_count, atoms_per_residue, _ = size(coords)
+    _, atoms_per_residue, residue_count = size(coords)
     atoms_per_residue == 4 || throw(DimensionMismatch("Expected 4 atoms per residue, got $atoms_per_residue"))
 
-    cpos = coords[1:end-1, 3, :]
-    opos = coords[1:end-1, 4, :]
-    npos = coords[2:end, 1, :]
+    coords_p = permutedims(coords, (3, 2, 1))
+
+    cpos = coords_p[1:end-1, 3, :]
+    opos = coords_p[1:end-1, 4, :]
+    npos = coords_p[2:end, 1, :]
     hpos = get_hydrogen_positions(coords)
 
     cmap = repeat(reshape(cpos, 1, :, 3), outer=(residue_count-1, 1, 1))
@@ -50,5 +55,5 @@ function get_hbond_map(
     hbond_map .= (sin.(hbond_map .* (π / 2 / margin)) .+ 1.0) ./ 2.0
     hbond_map .*= local_mask
 
-    return hbond_map
+    return hbond_map'
 end

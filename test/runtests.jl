@@ -30,4 +30,12 @@ ss_composition(ss::Vector{Int}) = [count(==(code), ss) for code in 1:3]
 
     end
 
+    @testset "sheet arrangement" begin
+        hbond_map = ASS.get_hbond_map(ASS.ncaco_coords.(ASS.readpdb("data/1ASS.pdb"))[1])
+        p, ap = sheet_arrangement(hbond_map)
+        @test p isa Vector{Int64}
+        @test Set(unique(p))  == Set([0, 1, 2])
+        @test Set(unique(ap)) == Set([0, 1, 2])
+    end
+
 end

@@ -31,8 +31,13 @@ end
 import Backboner, Backboner.Protein
 import Backboner.Protein: ncaco_coords, readpdb
 
-assign_secondary_structure(chains::Vector{Protein.Chain}) = assign_secondary_structure(ncaco_coords.(chains))
+get_coords(chains::Vector{Protein.Chain}) = cat(ncaco_coords.(chains)..., dims=3)
+get_coords(chain::Protein.Chain) = get_coords([chain])
 
+assign_secondary_structure(chains::Vector{Protein.Chain}) = assign_secondary_structure(ncaco_coords.(chains))
 assign_secondary_structure(chain::Protein.Chain) = assign_secondary_structure([chain])[1]
+
+assign_secondary_structure(backbones::Vector{Backboner.Backbone}) = assign_secondary_structure(Backboner.Protein.Chain.(backbones))
+assign_secondary_structure(backbone::Backboner.Backbone) = assign_secondary_structure(Protein.Chain(backbone))
 
 assign_secondary_structure(filename::AbstractString) = assign_secondary_structure(readpdb(filename))
