@@ -1,59 +1,51 @@
-function get_hydrogen_positions(coords::AbstractArray{T, 3}; permute=true) where T <: Real
-    _, atoms_per_residue, residue_count = size(coords)
-    atoms_per_residue == 4 || throw(DimensionMismatch("Expected 4 atoms per residue, got $atoms_per_residue"))
-    permute && (coords_p = permutedims(coords, (3, 2, 1)))
-    vec_cn = coords_p[2:end, 1, :] .- coords_p[1:end-1, 3, :]
-    vec_cn ./= mapslices(norm, vec_cn, dims=2)
-    vec_can = coords_p[2:end, 1, :] .- coords_p[2:end, 2, :]
-    vec_can ./= mapslices(norm, vec_can, dims=2)
-    vec_nh = vec_cn .+ vec_can
-    vec_nh ./= mapslices(norm, vec_nh, dims=2)
-    return coords_p[2:end, 1, :] .+ 1.01 .* vec_nh
+col_norms(arr::AbstractArray{T}) where T <: Real = sqrt.(sum(abs2, arr, dims=1))
+normalize_cols(arr::AbstractArray{T}) where T <: Real = arr ./ col_norms(arr)
+
+const Q1Q2 = 0.42 * 0.20 # charge
+const F = 332.0 # dimensional factor
+
+const CUTOFF = -0.5
+const MARGIN = 1.0
+
+function get_hydrogen_positions(coords::Array{<:Real, 3})
+    C_pos, N_pos, Ca_pos = coords[:, 3, 1:end-1], coords[:, 1, 2:end], coords[:, 2, 2:end]
+    CN_vecs = N_pos .- C_pos
+    CaN_vecs = N_pos .- Ca_pos
+    NH_vecs = 1.01 .* normalize_cols(normalize_cols(CN_vecs) .+ normalize_cols(CaN_vecs))
+    return N_pos .+ NH_vecs
 end
 
-function get_hbond_map(
-    coords::AbstractArray{T, 3};
-    cutoff::Float64 = DEFAULT_CUTOFF,
-    margin::Float64 = DEFAULT_MARGIN,
-) where T <: Real
-    _, atoms_per_residue, residue_count = size(coords)
-    atoms_per_residue == 4 || throw(DimensionMismatch("Expected 4 atoms per residue, got $atoms_per_residue"))
+function get_hbond_map(coords::Array{<:Real, 3})
+    n_residues = size(coords, 3)
 
-    coords_p = permutedims(coords, (3, 2, 1))
+    C_pos = coords[:, 3, :]
+    O_pos = coords[:, 4, :]
+    N_pos = coords[:, 1, 2:end]
+    H_pos = get_hydrogen_positions(coords) # for residues 2:end
 
-    cpos = coords_p[1:end-1, 3, :]
-    opos = coords_p[1:end-1, 4, :]
-    npos = coords_p[2:end, 1, :]
-    hpos = get_hydrogen_positions(coords)
+    ON_dist = dropdims(col_norms(O_pos .- reshape(N_pos, 3, 1, :)), dims=1)
+    CH_dist = dropdims(col_norms(C_pos .- reshape(H_pos, 3, 1, :)), dims=1)
+    OH_dist = dropdims(col_norms(O_pos .- reshape(H_pos, 3, 1, :)), dims=1)
+    CN_dist = dropdims(col_norms(C_pos .- reshape(N_pos, 3, 1, :)), dims=1)
 
-    cmap = repeat(reshape(cpos, 1, :, 3), outer=(residue_count-1, 1, 1))
-    omap = repeat(reshape(opos, 1, :, 3), outer=(residue_count-1, 1, 1))
-    nmap = repeat(reshape(npos, :, 1, 3), outer=(1, residue_count-1, 1))
-    hmap = repeat(reshape(hpos, :, 1, 3), outer=(1, residue_count-1, 1))
+    E = zeros(n_residues, n_residues)
+    E[:, 2:end] = (Q1Q2 * F) * (1 ./ ON_dist + 1 ./ CH_dist - 1 ./ OH_dist - 1 ./ CN_dist)
 
-    d_on = dropdims(sqrt.(sum(abs2.(omap .- nmap), dims=3)), dims=3)
-    d_ch = dropdims(sqrt.(sum(abs2.(cmap .- hmap), dims=3)), dims=3)
-    d_oh = dropdims(sqrt.(sum(abs2.(omap .- hmap), dims=3)), dims=3)
-    d_cn = dropdims(sqrt.(sum(abs2.(cmap .- nmap), dims=3)), dims=3)
+    # prevent CO from bonding to NH of the same residue, and the next two residues.
+    # 0 0 0 1 1
+    # 1 0 0 0 1
+    # 1 1 0 0 0
+    # 1 1 1 0 0
+    mask = trues(n_residues, n_residues)
+    mask[diagind(mask, 0)] .= false
+    mask[diagind(mask, 1)] .= false
+    mask[diagind(mask, 2)] .= false
 
-    arr = Q1Q2_F .* (1.0 ./ d_on .+ 1.0 ./ d_ch .- 1.0 ./ d_oh .- 1.0 ./ d_cn)
+    hbond_map = clamp.(CUTOFF - MARGIN .- E, -MARGIN, MARGIN)
+    hbond_map .= (sin.(hbond_map * (π / 2 / MARGIN)) .+ 1) / 2
+    hbond_map .*= mask
 
-    e = _pad(0.0, arr, (1,0), (0,1))
-
-    local_mask = trues(residue_count, residue_count)
-    for i in 1:residue_count
-        local_mask[i, i] = false
-        if i > 1
-            local_mask[i, i-1] = false
-        end
-        if i > 2
-            local_mask[i, i-2] = false
-        end
-    end
-
-    hbond_map = clamp.(cutoff - margin .- e, -margin, margin)
-    hbond_map .= (sin.(hbond_map .* (π / 2 / margin)) .+ 1.0) ./ 2.0
-    hbond_map .*= local_mask
-
-    return hbond_map'
+    return hbond_map
 end
+
+get_hbonds(coords::Array{<:Real, 3}) = get_hbond_map(coords) .> 0

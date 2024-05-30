@@ -1,7 +1,7 @@
 export sheet_directions
 
-function sheet_directions(hbond_map::AbstractMatrix{<:Real})
-    p_bridge, a_bridge = get_bridges(hbond_map)
+function sheet_directions(hbonds::BitMatrix)
+    p_bridge, a_bridge = get_bridges(hbonds)
     vec(sum(p_bridge, dims=2)), vec(sum(a_bridge, dims=2))
 end
 

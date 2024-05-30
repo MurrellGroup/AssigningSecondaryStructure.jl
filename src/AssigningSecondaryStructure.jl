@@ -1,6 +1,7 @@
 module AssigningSecondaryStructure
 
-include("utils.jl")
+using LinearAlgebra
+
 include("hydrogen.jl")
 include("dssp.jl")
 include("assign.jl")

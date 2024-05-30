@@ -1,81 +1,71 @@
 # Ported from https://github.com/ShintaroMinami/PyDSSP
 
-using LinearAlgebra
-using PaddedViews
 
-const Q1Q2_F = 0.084 * 332
-const DEFAULT_CUTOFF = -0.5
-const DEFAULT_MARGIN = 1.0
-
-function _unfold(a::AbstractArray, window::Int, axis::Int)
-    axis = axis < 0 ? ndims(a) + axis + 1 : axis
-    idx = (0:window-1) .+ (1:size(a, axis) - window + 1)'
-    unfolded = selectdim(a, axis, idx)
-    return _moveaxis(unfolded, axis, ndims(unfolded))
-end
-
-function get_helix_bools(hbmap::AbstractMatrix{<:Real})
+# 5-turn                      >>555<< 
+# 4-turn            >>44<<            
+# 3-turn   >>3<<                      
+# MINIMAL   X        X         X      
+# LONGER    GGG      HHHH      IIIII  
+function get_helices(hbonds::BitMatrix)
     # Identify turn 3, 4, 5
-    turn3 = diag(hbmap, 3) .> 0
-    turn4 = diag(hbmap, 4) .> 0
-    turn5 = diag(hbmap, 5) .> 0
+    turn3 = [diag(hbonds, 3) .> 0; falses(3)]
+    turn4 = [diag(hbonds, 4) .> 0; falses(4)]
+    turn5 = [diag(hbonds, 5) .> 0; falses(5)]
 
-    # Assignment of helical SSEs
-    h3 = collect(_pad(false, @view(turn3[1:end-1]) .& @view(turn3[2:end]), (1, 3)))
-    h4 = collect(_pad(false, @view(turn4[1:end-1]) .& @view(turn4[2:end]), (1, 4)))
-    h5 = collect(_pad(false, @view(turn5[1:end-1]) .& @view(turn5[2:end]), (1, 5)))
+    # Minimal helices:
+    # from DSSP paper: `4-helix(i,i+3)=: [4-turn(i-1) and 4-turn(i)]`
+    h3 = [false; turn3[1:end-1] .& turn3[2:end]]
+    h4 = [false; turn4[1:end-1] .& turn4[2:end]]
+    h5 = [false; turn5[1:end-1] .& turn5[2:end]]
 
-    # Helix4 first
-    helix4 = h4 .| circshift(h4, 1) .| circshift(h4, 2) .| circshift(h4, 3)
-    h3 .&= .!circshift(helix4, 1) .& .!helix4
-    h5 .&= .!circshift(helix4, 1) .& .!helix4
+    # Longer helices:
+    helix4 = reduce(.|, circshift(h4, i) for i in 0:3)
 
-    helix3 = h3 .| circshift(h3, 1) .| circshift(h3, 2)
-    helix5 = h5 .| circshift(h5, 1) .| circshift(h5, 2) .| circshift(h5, 3) .| circshift(h5, 4)
-    
+    # prioritize 4-turns
+    h3 = h3 .& .!helix4 .& .!circshift(helix4, 1)
+    h5 = h5 .& .!helix4 .& .!circshift(helix4, 1)
+
+    helix3 = reduce(.|, circshift(h3, i) for i in 0:2)
+    helix5 = reduce(.|, circshift(h5, i) for i in 0:4)
+
     helix = helix3 .| helix4 .| helix5
 
     return helix
 end
 
-function get_bridges(hbmap::AbstractMatrix{<:Real})
-    # Identify bridge
-    unfoldmap = _unfold(_unfold(hbmap, 3, -2), 3, -2) .> 0
-    unfoldmap_rev = permutedims(unfoldmap, (2, 1, 3, 4))
+function get_bridges(hbonds::BitMatrix)
+    offset(n, m) = hbonds[1+n:end-2+n, 1+m:end-2+m]
+    get_bridge(n1, m1, n2, m2) = offset(n1, m1) .& transpose(offset(n2, m2))
 
-    p_bridge = (unfoldmap[:, :, 1, 2] .& unfoldmap_rev[:, :, 2, 3]) .| (unfoldmap_rev[:, :, 1, 2] .& unfoldmap[:, :, 2, 3])
-    p_bridge = _pad(false, p_bridge, (1,1), (1,1))
+    # parallel
+    p_bridge = get_bridge(0, 1, 1, 2) .| get_bridge(1, 2, 0, 1)
 
-    a_bridge = (unfoldmap[:, :, 2, 2] .& unfoldmap_rev[:, :, 2, 2]) .| (unfoldmap[:, :, 1, 3] .& unfoldmap_rev[:, :, 1, 3])
-    a_bridge = _pad(false, a_bridge, (1,1), (1,1))
+    # anti-parallel
+    a_bridge = get_bridge(1, 1, 1, 1) .| get_bridge(0, 2, 0, 2)
 
     return p_bridge, a_bridge
 end
 
-function get_ladder_bools(hbmap::AbstractMatrix{<:Real})
-    p_bridge, a_bridge = get_bridges(hbmap)
-    ladder = vec(reduce(|, p_bridge .| a_bridge, dims=2))
-    return ladder
+function get_ladders(hbonds::BitMatrix)
+    p_bridge, a_bridge = get_bridges(hbonds)
+    return [false; reduce(|, p_bridge, dims=2); false] .| [false; reduce(|, a_bridge, dims=2); false]
 end
 
 # not differentiable like the PyDSSP version cause we use bitwise operators
-function dssp(coords::AbstractArray{T, 3}) where T
-    size(coords, 1) == 3 || throw(DimensionMismatch("Expected 3 coordinates per atom, got $(size(coords, 1))"))
-    size(coords, 2) == 4 || throw(DimensionMismatch("Expected 4 atoms per residue, got $(size(coords, 2))"))
+function dssp(coords::Array{<:Real, 3})
+    n_residues = size(coords, 3)
+    size(coords) == (3, 4, n_residues) || throw(DimensionMismatch("Expected 3x4xn array, got $(size(coords))"))
+    n_residues < 5 && return ones(Int, n_residues)
+    coords = convert(Array{Float64}, coords)
 
-    N = size(coords, 3)
-    if N < 6
-        coords = cat(coords, fill(Inf, 3, 4, 6-N), dims=3)
-    end
+    hbonds = get_hbonds(coords) .> 0 # "i:C=O, j:N-H" form
 
-    hbmap = get_hbond_map(coords) # "i:C=O, j:N-H" form
-
-    # H, E, L of C3
-    helix = get_helix_bools(hbmap)
-    strand = get_ladder_bools(hbmap)
+    helix = get_helices(hbonds)
+    strand = get_ladders(hbonds)
     loop = .!(helix .| strand)
 
-    num_vector = findfirst.(eachrow(hcat(loop, helix, strand)))[1:N]
+    # 1 for helix, 2 for strand, 3 for loop
+    ss_numbers = vec(mapslices(findfirst, [loop helix strand], dims=2))
 
-    return num_vector
+    return ss_numbers
 end
