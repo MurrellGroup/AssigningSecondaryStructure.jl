@@ -4,22 +4,25 @@
 # MINIMAL   X        X         X      
 # LONGER    GGG      HHHH      IIIII  
 function get_helices(Hbonds::AbstractMatrix{Bool})
-    L = size(Hbonds, 1)
-
     turn3 = [diag(Hbonds, 3) .> 0; falses(3)]
     turn4 = [diag(Hbonds, 4) .> 0; falses(4)]
     turn5 = [diag(Hbonds, 5) .> 0; falses(5)]
 
     # "Minimal" helices: the previous and current
     # residue is bonding to a residue n steps ahead respectively
-    h3 = [false; [turn3[i-1] & turn3[i] for i in 1:L]]
-    h4 = [false; [turn3[i-1] & turn4[i] for i in 1:L]]
-    h5 = [false; [turn3[i-1] & turn5[i] for i in 1:L]]
-
+    h3 = [get(turn3, i-1, false) & turn3[i] for i in eachindex(turn3)]
+    h4 = [get(turn4, i-1, false) & turn4[i] for i in eachindex(turn3)]
+    h5 = [get(turn5, i-1, false) & turn5[i] for i in eachindex(turn3)]
+    
     # Longer helices: smearing out the minimal helix
     # residues to the residues they bond to
-    helix3 = reduce(.|, circshift(h3, i) for i in 0:2)
     helix4 = reduce(.|, circshift(h4, i) for i in 0:3)
+
+    mask = .!(helix4 .| circshift(helix4, 1))
+    h3 = h3 .& mask
+    h5 = h5 .& mask
+
+    helix3 = reduce(.|, circshift(h3, i) for i in 0:2)
     helix5 = reduce(.|, circshift(h5, i) for i in 0:4)
     helix = helix3 .| helix4 .| helix5
 
