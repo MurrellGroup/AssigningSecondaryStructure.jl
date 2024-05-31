@@ -1,54 +1,50 @@
 # Ported from https://github.com/ShintaroMinami/PyDSSP
 
-
 # 5-turn                      >>555<< 
 # 4-turn            >>44<<            
 # 3-turn   >>3<<                      
 # MINIMAL   X        X         X      
 # LONGER    GGG      HHHH      IIIII  
-function get_helices(hbonds::AbstractMatrix{Bool})
+function get_helices(Hbond::AbstractMatrix{Bool})
     # Identify turn 3, 4, 5
-    turn3 = [diag(hbonds, 3) .> 0; falses(3)]
-    turn4 = [diag(hbonds, 4) .> 0; falses(4)]
-    turn5 = [diag(hbonds, 5) .> 0; falses(5)]
+    turn3 = [diag(Hbond, 3) .> 0; falses(3)]
+    turn4 = [diag(Hbond, 4) .> 0; falses(4)]
+    turn5 = [diag(Hbond, 5) .> 0; falses(5)]
 
     # Minimal helices:
-    # from DSSP paper: `4-helix(i,i+3)=: [4-turn(i-1) and 4-turn(i)]`
     h3 = [false; turn3[1:end-1] .& turn3[2:end]]
     h4 = [false; turn4[1:end-1] .& turn4[2:end]]
     h5 = [false; turn5[1:end-1] .& turn5[2:end]]
 
     # Longer helices:
+    #helix3 = reduce(.|, circshift(h3, i) for i in 0:2)
     helix4 = reduce(.|, circshift(h4, i) for i in 0:3)
+    #helix5 = reduce(.|, circshift(h5, i) for i in 0:4)
 
     # prioritize α-helices
-    h3 = h3 .& .!helix4 .& .!circshift(helix4, 1)
-    h5 = h5 .& .!helix4 .& .!circshift(helix4, 1)
+    #h3 = h3 .& .!helix4 .& .!circshift(helix4, 1)
+    #h5 = h5 .& .!helix4 .& .!circshift(helix4, 1)
 
-    helix3 = reduce(.|, circshift(h3, i) for i in 0:2)
-    helix5 = reduce(.|, circshift(h5, i) for i in 0:4)
+    #helix = helix3 .| helix4 .| helix5
 
-    helix = helix3 .| helix4 .| helix5
-
-    return helix
+    return helix4 |> collect
 end
 
-function get_bridges(hbonds::AbstractMatrix{Bool})
-    offset(n, m) = hbonds[1+n:end-2+n, 1+m:end-2+m]
-    get_bridge(n1, m1, n2, m2) = offset(n1, m1) .& transpose(offset(n2, m2))
-
-    # parallel
-    p_bridge = get_bridge(0, 1, 1, 2) .| get_bridge(1, 2, 0, 1)
-
-    # anti-parallel
-    a_bridge = get_bridge(1, 1, 1, 1) .| get_bridge(0, 2, 0, 2)
-
-    return p_bridge, a_bridge
+function get_bridges(Hbond::AbstractMatrix{Bool})
+    Parallel_Bridge = similar(Hbond)
+    Antiparallel_Bridge = similar(Hbond)
+    for j in 2:size(Hbond, 2)-1, i in 2:size(Hbond, 1)-1
+            Parallel_Bridge[i,j] = (Hbond[i-1,j] & Hbond[j,i+1]) |
+                                   (Hbond[j-1,i] & Hbond[i,j+1])
+        Antiparallel_Bridge[i,j] = (Hbond[i,j] & Hbond[j,i]) |
+                                   (Hbond[i-1,j+1] & Hbond[j-1,i+1])
+    end
+    return Parallel_Bridge, Antiparallel_Bridge
 end
 
-function get_ladders(hbonds::AbstractMatrix{Bool})
-    p_bridge, a_bridge = get_bridges(hbonds)
-    return [false; collect(reduce(|, p_bridge, dims=2)); false] .| [false; collect(reduce(|, a_bridge, dims=2)); false]
+function get_strands(Hbond::AbstractMatrix{Bool})
+    Parallel_Bridge, Antiparallel_Bridge = get_bridges(Hbond)
+    return mapslices(any, Parallel_Bridge .| Antiparallel_Bridge, dims=1) |> vec |> collect
 end
 
 # not differentiable like the PyDSSP version cause we use bitwise operators
@@ -58,10 +54,10 @@ function dssp(coords::Array{<:Real, 3})
     n_residues < 5 && return ones(Int, n_residues)
     coords = convert(Array{Float64}, coords)
 
-    hbonds = get_hbonds(coords) .> 0 # "i:C=O, j:N-H" form
+    Hbond = get_Hbonds(coords)
 
-    helix = get_helices(hbonds)
-    strand = get_ladders(hbonds)
+    helix = get_helices(Hbond)
+    strand = get_strands(Hbond)
     loop = .!(helix .| strand)
 
     # 1 for helix, 2 for strand, 3 for loop
