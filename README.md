@@ -32,4 +32,4 @@ The `assign_secondary_structure` function can also take a vector of atom coordin
 
 ## Acknowledgements
 
-This package was originally ported from the [PyDSSP](https://github.com/ShintaroMinami/PyDSSP) package, created by Shintaro Minami. The code has since been modified to be more Julia-like and efficient, at the cost of differentiability.
+This package was originally ported from the [PyDSSP](https://github.com/ShintaroMinami/PyDSSP) package, created by Shintaro Minami. The code has since been rewritten to look more like the 1983 paper (Kabsch W and Sander C), and to be more Julian, understandable, and efficient, at the cost of it no longer being differentiable like the PyDSSP version.
