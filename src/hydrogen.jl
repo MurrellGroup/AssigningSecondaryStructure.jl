@@ -25,7 +25,7 @@ function get_Hbonds(coords::Array{<:Real, 3}, cutoff::Real=CUTOFF)
     N_pos = coords[:, 1, 2:end] # for residues 2:end, so is offset by 1
     H_pos = get_hydrogen_positions(coords) # same here
 
-    Hbond = spzeros(Bool, n_residues, n_residues)
+    Hbonds = spzeros(Bool, n_residues, n_residues)
     for j in 2:n_residues, i in 1:n_residues-1
         i <= j <= i+2 && continue
 
@@ -34,8 +34,8 @@ function get_Hbonds(coords::Array{<:Real, 3}, cutoff::Real=CUTOFF)
         OH_dist = norm(O_pos[:, i] - H_pos[:, j-1])
         CN_dist = norm(C_pos[:, i] - N_pos[:, j-1])
 
-        E = Q1Q2 * F * (1 / ON_dist + 1 / CH_dist - 1 / OH_dist - 1 / CN_dist)
-        Hbond[i, j] = E < cutoff
+        E = Q1Q2 * F * (1/ON_dist + 1/CH_dist - 1/OH_dist - 1/CN_dist)
+        Hbonds[i, j] = E < cutoff
     end
-    return Hbond
+    return Hbonds
 end
