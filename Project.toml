@@ -1,7 +1,7 @@
 name = "AssigningSecondaryStructure"
 uuid = "8ed43e74-60fb-4e11-99b9-91deed37aef7"
-authors = ["Anton Oresten <anton.oresten42@gmail.com>", "Shintaro Minami"]
-version = "0.3.4"
+authors = ["Anton Oresten <anton.oresten42@gmail.com>"]
+version = "0.4.0"
 
 [deps]
 Backboner = "9ac9c2a2-1cfe-46d3-b3fd-6fa470ea56a7"
@@ -11,6 +11,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 [compat]
 Backboner = "0.9"
 LinearAlgebra = "1"
+SparseArrays = "1"
 julia = "1"
 
 [extras]

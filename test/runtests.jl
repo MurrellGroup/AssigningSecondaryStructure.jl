@@ -31,8 +31,8 @@ ss_composition(ss::AbstractVector{Int}) = [count(==(code), ss) for code in 1:3]
     end
 
     @testset "sheet directions" begin
-        hbonds = ASS.get_hbonds(ASS.ncaco_coords.(ASS.readpdb("data/1ASS.pdb"))[1])
-        p, ap = sheet_directions(hbonds)
+        Hbonds = ASS.get_Hbonds(ASS.ncaco_coords.(ASS.readpdb("data/1ASS.pdb"))[1])
+        p, ap = sheet_directions(Hbonds)
         @test p isa Vector{Int64}
         @test Set(unique(p))  == Set([0, 1, 2])
         @test Set(unique(ap)) == Set([0, 1, 2])
