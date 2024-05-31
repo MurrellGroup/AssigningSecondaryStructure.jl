@@ -1,5 +1,3 @@
-# Ported from https://github.com/ShintaroMinami/PyDSSP
-
 # 3-turn   >>3<<                      
 # 4-turn            >>44<<            
 # 5-turn                      >>555<< 
