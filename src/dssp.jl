@@ -6,7 +6,7 @@
 # 3-turn   >>3<<                      
 # MINIMAL   X        X         X      
 # LONGER    GGG      HHHH      IIIII  
-function get_helices(hbonds::BitMatrix)
+function get_helices(hbonds::AbstractMatrix{Bool})
     # Identify turn 3, 4, 5
     turn3 = [diag(hbonds, 3) .> 0; falses(3)]
     turn4 = [diag(hbonds, 4) .> 0; falses(4)]
@@ -21,7 +21,7 @@ function get_helices(hbonds::BitMatrix)
     # Longer helices:
     helix4 = reduce(.|, circshift(h4, i) for i in 0:3)
 
-    # prioritize 4-turns
+    # prioritize α-helices
     h3 = h3 .& .!helix4 .& .!circshift(helix4, 1)
     h5 = h5 .& .!helix4 .& .!circshift(helix4, 1)
 
@@ -33,7 +33,7 @@ function get_helices(hbonds::BitMatrix)
     return helix
 end
 
-function get_bridges(hbonds::BitMatrix)
+function get_bridges(hbonds::AbstractMatrix{Bool})
     offset(n, m) = hbonds[1+n:end-2+n, 1+m:end-2+m]
     get_bridge(n1, m1, n2, m2) = offset(n1, m1) .& transpose(offset(n2, m2))
 
@@ -46,9 +46,9 @@ function get_bridges(hbonds::BitMatrix)
     return p_bridge, a_bridge
 end
 
-function get_ladders(hbonds::BitMatrix)
+function get_ladders(hbonds::AbstractMatrix{Bool})
     p_bridge, a_bridge = get_bridges(hbonds)
-    return [false; reduce(|, p_bridge, dims=2); false] .| [false; reduce(|, a_bridge, dims=2); false]
+    return [false; collect(reduce(|, p_bridge, dims=2)); false] .| [false; collect(reduce(|, a_bridge, dims=2)); false]
 end
 
 # not differentiable like the PyDSSP version cause we use bitwise operators

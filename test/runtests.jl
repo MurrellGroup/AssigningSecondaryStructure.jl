@@ -3,7 +3,7 @@ using Test
 
 import AssigningSecondaryStructure as ASS
 
-ss_composition(ss::Vector{Int}) = [count(==(code), ss) for code in 1:3]
+ss_composition(ss::AbstractVector{Int}) = [count(==(code), ss) for code in 1:3]
 
 @testset "AssigningSecondaryStructure.jl" begin
 
