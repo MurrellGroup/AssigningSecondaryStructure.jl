@@ -1,3 +1,5 @@
+using LinearAlgebra: diag
+
 # 3-turn   >>3<<                      
 # 4-turn            >>44<<            
 # 5-turn                      >>555<< 
@@ -11,8 +13,8 @@ function get_helices(Hbonds::AbstractMatrix{Bool})
     # "Minimal" helices: the previous and current
     # residue is bonding to a residue n steps ahead respectively
     h3 = [get(turn3, i-1, false) & turn3[i] for i in eachindex(turn3)]
-    h4 = [get(turn4, i-1, false) & turn4[i] for i in eachindex(turn3)]
-    h5 = [get(turn5, i-1, false) & turn5[i] for i in eachindex(turn3)]
+    h4 = [get(turn4, i-1, false) & turn4[i] for i in eachindex(turn4)]
+    h5 = [get(turn5, i-1, false) & turn5[i] for i in eachindex(turn5)]
     
     # Longer helices: smearing out the minimal helix
     # residues to the residues they bond to
@@ -30,8 +32,8 @@ function get_helices(Hbonds::AbstractMatrix{Bool})
 end
 
 function get_bridges(Hbonds::AbstractMatrix{Bool})
-    Parallel_Bridge = similar(Hbonds)
-    Antiparallel_Bridge = similar(Hbonds)
+    Parallel_Bridge = falses(size(Hbonds))
+    Antiparallel_Bridge = falses(size(Hbonds))
     for j in 2:size(Hbonds, 2)-1, i in 2:size(Hbonds, 1)-1
             Parallel_Bridge[i,j] = (Hbonds[i-1,j] & Hbonds[j,i+1]) |
                                    (Hbonds[j-1,i] & Hbonds[i,j+1])
@@ -46,10 +48,10 @@ function get_strands(Hbonds::AbstractMatrix{Bool})
     return mapslices(any, Parallel_Bridge .| Antiparallel_Bridge, dims=1) |> vec |> collect
 end
 
-function dssp(coords::Array{<:Real, 3})
-    size(coords)[1:2] == (3, 4) || throw(DimensionMismatch("Expected 3x4xL array, got $(size(coords))"))
+function dssp(coords::Array{<:Real,3})
+    size(coords)[1:2] == (3, 3) || throw(DimensionMismatch("Expected 3x3xL array, got $(size(coords))"))
     size(coords, 3) < 5 && return ones(Int, size(coords, 3))
-    coords = convert(Array{Float64}, coords)
+    coords = convert(Array{Float32}, coords)
 
     Hbonds = get_Hbonds(coords)
 
