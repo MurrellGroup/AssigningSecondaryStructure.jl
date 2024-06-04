@@ -28,7 +28,7 @@ julia> assign_secondary_structure("test/data/1ZAK.pdb") # 2 chains
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
 ```
 
-The `assign_secondary_structure` function can also take a vector of atom coordinate arrays of size (3, 4, L), in cases where the atom coordinates are already loaded. The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C, O), and the third axis is for the residues.
+The `assign_secondary_structure` function can also take a vector of atom coordinate arrays of size (3, 3, L), in cases where the atom coordinates are already loaded. The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
 
 ## Acknowledgements
 
