@@ -31,9 +31,9 @@ end
 
 # i:C=O, j:N-H
 function get_Hbonds(coords::Array{T,3}, cutoff::Real=CUTOFF) where T<:Real
-    C_pos = [coords[:, 3, 1:end-1] fill(T(NaN), 3)]
+    C_pos = coords[:, 3, :]
     O_pos = get_oxygen_positions(coords)
-    N_pos = [fill(T(NaN), 3) coords[:, 1, 2:end]]
+    N_pos = coords[:, 1, :]
     H_pos = get_hydrogen_positions(coords)
 
     ON_dist = col_norms(O_pos .- reshape(N_pos, 3, 1, :))
