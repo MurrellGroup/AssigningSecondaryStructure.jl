@@ -7,7 +7,7 @@
 
 AssigningSecondaryStructure provides a way to assign loops, helices, and strands to protein backbones using a simplified version of the [DSSP](https://swift.cmbi.umcn.nl/gv/dssp/) algorithm.
 
-Both the [BioStructures.jl](https://github.com/BioJulia/BioStructures.jl) and [ProteinSecondaryStructures.jl](https://github.com/m3g/ProteinSecondaryStructures.jl) packages provide interfaces for more sophisticated secondary structure assignment, but they both call the [DSSP_jll.jl](https://docs.juliahub.com/General/DSSP_jll/stable/) binary under the hood, which requires writing structures to a file, leading to significant overhead.
+Both the [BioStructures.jl](https://github.com/BioJulia/BioStructures.jl) and [ProteinSecondaryStructures.jl](https://github.com/m3g/ProteinSecondaryStructures.jl) packages provide interfaces for more sophisticated secondary structure assignment, but they both call the [DSSP_jll.jl](https://docs.juliahub.com/General/DSSP_jll/stable/) binary under the hood, which requires writing structures to a file with significant overhead.
 
 ## Installation
 
@@ -17,6 +17,8 @@ The package is registered in the General registry, and can be installed from the
 
 ```julia
 julia> using AssigningSecondaryStructure
+
+julia> using Backboner # package with an extension that adds support for PDB files 
 
 julia> assign_secondary_structure("test/data/1ASS.pdb") # 1 chain
 1-element Vector{Vector{Int64}}:
@@ -28,7 +30,7 @@ julia> assign_secondary_structure("test/data/1ZAK.pdb") # 2 chains
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
 ```
 
-The `assign_secondary_structure` function can also take a vector of atom coordinate arrays of size (3, 3, L), in cases where the atom coordinates are already loaded. The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
+Without Backboner, `assign_secondary_structure` takes a vector of atom coordinate arrays of size (3, 3, L), in cases the atom coordinates are already loaded. The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
 
 ## Acknowledgements
 
