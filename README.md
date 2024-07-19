@@ -30,8 +30,8 @@ julia> assign_secondary_structure("test/data/1ZAK.pdb") # 2 chains
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
 ```
 
-Without Backboner, `assign_secondary_structure` takes a vector of atom coordinate arrays of size (3, 3, L), in cases the atom coordinates are already loaded. The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
+Without Backboner, `assign_secondary_structure` takes a vector of atom coordinate arrays of size (3, 3, L), in cases where the atom coordinates are already loaded. The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
 
 ## Acknowledgements
 
-This package was originally ported from the [PyDSSP](https://github.com/ShintaroMinami/PyDSSP) package, created by Shintaro Minami. The code has since been rewritten to look more like the 1983 paper (Kabsch W and Sander C), and to be more Julian, understandable, and efficient, at the cost of it no longer being differentiable like the PyDSSP version.
+This package was originally ported from the [PyDSSP](https://github.com/ShintaroMinami/PyDSSP) package, created by Shintaro Minami. The code has since been rewritten to look more like the 1983 paper (Kabsch W and Sander C), and to be more Julian, understandable, and efficient, at the cost of it no longer being differentiable like the PyDSSP version. The time complexity is still quadratic, so it may be slow for larger proteins. We plan on making a more efficient version with k-d trees.
