@@ -48,11 +48,9 @@ function get_strands(Hbonds::AbstractMatrix{Bool})
     return mapslices(any, Parallel_Bridge .| Antiparallel_Bridge, dims=1) |> vec |> collect
 end
 
-function dssp(coords::Array{<:Real,3})
+function dssp(coords::Array{T,3}) where T <: Real
     size(coords)[1:2] == (3, 3) || throw(DimensionMismatch("Expected 3x3xL array, got $(size(coords))"))
     size(coords, 3) < 5 && return ones(Int, size(coords, 3))
-    coords = convert(Array{Float32}, coords)
-
     Hbonds = get_Hbonds(coords)
 
     helix = get_helices(Hbonds)
@@ -60,7 +58,6 @@ function dssp(coords::Array{<:Real,3})
     loop = .!(helix .| strand)
 
     # 1 for helix, 2 for strand, 3 for loop
-    ss_numbers = vec(mapslices(findfirst, [loop helix strand], dims=2))
-
-    return ss_numbers
+    secondary_structure = vec(mapslices(findfirst, [loop helix strand], dims=2))
+    return secondary_structure
 end

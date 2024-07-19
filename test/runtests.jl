@@ -4,7 +4,7 @@ using Test
 import AssigningSecondaryStructure as ASS
 import Backboner
 
-ss_composition(ss::AbstractVector{Int}) = [count(==(code), ss) for code in 1:3]
+ss_composition(secondary_structure::Vector{Int}) = [count(==(ss), secondary_structure) for ss in 1:3]
 
 @testset "AssigningSecondaryStructure.jl" begin
 
