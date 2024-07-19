@@ -15,10 +15,14 @@ The package is registered in the General registry, and can be installed from the
 
 ## Usage
 
-```julia
-julia> using AssigningSecondaryStructure
+The `assign_secondary_structure` function takes a vector of atom coordinate arrays of size (3, 3, L). The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
 
-julia> using Backboner # package with an extension that adds support for PDB files 
+In cases where the coordinates aren't already loaded, one can import Backboner, which adds support for .pdb and .cif files. 
+
+```julia
+julia> using AssigningSecondaryStructure, Backboner
+
+julia> using Backboner
 
 julia> assign_secondary_structure("test/data/1ASS.pdb") # 1 chain
 1-element Vector{Vector{Int64}}:
@@ -29,8 +33,6 @@ julia> assign_secondary_structure("test/data/1ZAK.pdb") # 2 chains
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
 ```
-
-Without Backboner, `assign_secondary_structure` takes a vector of atom coordinate arrays of size (3, 3, L), in cases where the atom coordinates are already loaded. The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
 
 ## Acknowledgements
 
