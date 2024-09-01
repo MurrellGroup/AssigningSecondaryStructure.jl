@@ -30,7 +30,7 @@ function get_hydrogen_positions(coords::Array{T,3}) where T<:Real
 end
 
 # i:C=O, j:N-H
-function get_Hbonds(coords::Array{T,3}, cutoff::Real=CUTOFF) where T<:Real
+function get_hbond_map(coords::Array{T,3}, cutoff::Real=CUTOFF) where T<:Real
     C_pos = coords[:, 3, :]
     O_pos = get_oxygen_positions(coords)
     N_pos = coords[:, 1, :]
