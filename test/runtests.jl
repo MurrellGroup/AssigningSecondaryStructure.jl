@@ -7,11 +7,13 @@ using BioStructures
 
 ss_composition(secondary_structure::Vector{Int}) = [count(==(ss), secondary_structure) for ss in 1:3]
 
+loadchaincoords(args...) = map(collectchains(read(args...))) do chain
+    reshape(coordarray(chain, backboneselector), 3, 4, :)[:, 1:3, :]
+end
+
 @testset "AssigningSecondaryStructure.jl" begin
 
-    backbones = map(collectchains(read("data/1ZAK.pdb", PDBFormat))) do chain
-        reshape(coordarray(chain, backboneselector), 3, 4, :)[:, 1:3, :]
-    end
+    backbones = loadchaincoords("data/1ZAK.pdb", PDBFormat)
 
     @testset "1ZAK" begin
         ss = assign_secondary_structure(backbones)
