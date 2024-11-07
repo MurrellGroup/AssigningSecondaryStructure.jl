@@ -12,7 +12,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 LinearAlgebra = "1"
 NearestNeighbors = "0.4.20"
-SparseArrays = "1.11.0"
+SparseArrays = "1.10.0"
 StaticArrays = "1.9.8"
 julia = "1"
 
