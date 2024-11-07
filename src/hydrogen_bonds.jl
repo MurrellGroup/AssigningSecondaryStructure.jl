@@ -31,11 +31,12 @@ end
 
 using NearestNeighbors
 using SparseArrays
+using StaticArrays
 
 function get_hbond_map(coords::Array{T,3}, cutoff::Real=CUTOFF) where T<:Real
-    C_pos = coords[:, 3, :]
+    C_pos = @views coords[:, 3, :]
     O_pos = get_oxygen_positions(coords)
-    N_pos = coords[:, 1, :]
+    N_pos = @views coords[:, 1, :]
     H_pos = get_hydrogen_positions(coords)
 
     num_residues = size(coords, 3)
@@ -44,18 +45,23 @@ function get_hbond_map(coords::Array{T,3}, cutoff::Real=CUTOFF) where T<:Real
     # Build KD-tree for N positions
     N_tree = KDTree(N_pos)
 
+    C_pos_static = SVector{3, T}.(eachslice(C_pos, dims=2))
+    O_pos_static = SVector{3, T}.(eachslice(O_pos, dims=2))
+    N_pos_static = SVector{3, T}.(eachslice(N_pos, dims=2))
+    H_pos_static = SVector{3, T}.(eachslice(H_pos, dims=2))
+
     # For each O_i, find N_j within cutoff
     for i in 1:num_residues
-        O_i = O_pos[:, i]
-        idxs = inrange(N_tree, O_i, 10.0)
+        O_i = O_pos_static[i]
+        idxs = inrange(N_tree, O_i, 5.0)
         for j in idxs
             # Exclude self and neighboring residues
             if abs(i - j) > 2  # Exclude i == j, i+1, i+2
                 # Compute E[i,j] as before
-                ON_dist = norm(O_pos[:, i] - N_pos[:, j])
-                CH_dist = norm(C_pos[:, i] - H_pos[:, j])
-                OH_dist = norm(O_pos[:, i] - H_pos[:, j])
-                CN_dist = norm(C_pos[:, i] - N_pos[:, j])
+                ON_dist = norm(O_pos_static[i] - N_pos_static[j])
+                CH_dist = norm(C_pos_static[i] - H_pos_static[j])
+                OH_dist = norm(O_pos_static[i] - H_pos_static[j])
+                CN_dist = norm(C_pos_static[i] - N_pos_static[j])
                 E_ij = T(Q1Q2 * F) * (1 / ON_dist + 1 / CH_dist - 1 / OH_dist - 1 / CN_dist)
                 if E_ij < cutoff
                     Hbonds[i, j] = true
