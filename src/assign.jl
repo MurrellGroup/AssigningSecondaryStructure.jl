@@ -5,43 +5,67 @@ using LinearAlgebra: diag
 # 5-turn                      >>555<< 
 # MINIMAL   X        X         X      
 # LONGER    GGG      HHHH      IIIII  
-function get_helices(Hbonds::AbstractMatrix{Bool})
-    turn3 = [diag(Hbonds, 3) .> 0; falses(3)]
-    turn4 = [diag(Hbonds, 4) .> 0; falses(4)]
-    turn5 = [diag(Hbonds, 5) .> 0; falses(5)]
+function get_helices(Hbonds::SparseMatrixCSC{Bool, Int})
+    n = size(Hbonds, 1)
 
-    # "Minimal" helices: the previous and current
-    # residue is bonding to a residue n steps ahead respectively
+    # Extract diagonals from sparse matrix
+    turn3 = [Hbonds[i, i+3] for i in 1:(n - 3)]
+    turn3 = vcat(turn3, falses(3))
+
+    turn4 = [Hbonds[i, i+4] for i in 1:(n - 4)]
+    turn4 = vcat(turn4, falses(4))
+
+    turn5 = [Hbonds[i, i+5] for i in 1:(n - 5)]
+    turn5 = vcat(turn5, falses(5))
+
+    # "Minimal" helices
     h3 = [get(turn3, i-1, false) & turn3[i] for i in eachindex(turn3)]
     h4 = [get(turn4, i-1, false) & turn4[i] for i in eachindex(turn4)]
     h5 = [get(turn5, i-1, false) & turn5[i] for i in eachindex(turn5)]
     
-    # Longer helices: smearing out the minimal helix
-    # residues to the residues they bond to
-    helix4 = reduce(.|, circshift(h4, i) for i in 0:3)
+    # Longer helices
+    helix4 = reduce(.|, (circshift(h4, i) for i in 0:3))
 
     mask = .!(helix4 .| circshift(helix4, 1))
     h3 = h3 .& mask
     h5 = h5 .& mask
 
-    helix3 = reduce(.|, circshift(h3, i) for i in 0:2)
-    helix5 = reduce(.|, circshift(h5, i) for i in 0:4)
+    helix3 = reduce(.|, (circshift(h3, i) for i in 0:2))
+    helix5 = reduce(.|, (circshift(h5, i) for i in 0:4))
     helix = helix3 .| helix4 .| helix5
 
     return helix |> collect
 end
 
-function get_bridges(Hbonds::AbstractMatrix{Bool})
-    Parallel_Bridge = falses(size(Hbonds))
-    Antiparallel_Bridge = falses(size(Hbonds))
-    for j in 2:size(Hbonds, 2)-1, i in 2:size(Hbonds, 1)-1
-            Parallel_Bridge[i,j] = (Hbonds[i-1,j] & Hbonds[j,i+1]) |
-                                   (Hbonds[j-1,i] & Hbonds[i,j+1])
-        Antiparallel_Bridge[i,j] = (Hbonds[i,j] & Hbonds[j,i]) |
-                                   (Hbonds[i-1,j+1] & Hbonds[j-1,i+1])
+function get_bridges(Hbonds::SparseMatrixCSC{Bool, Int})
+    n = size(Hbonds, 1)
+    Parallel_Bridge = spzeros(Bool, n, n)
+    Antiparallel_Bridge = spzeros(Bool, n, n)
+
+    is, js, vals = findnz(Hbonds)
+
+    # Iterate over non-zero entries in Hbonds
+    for (i0, j0) in zip(is, js)
+
+        for (i, j) in Iterators.product(i0-1:i0+1, j0-1:j0+1)
+
+            1 < i < n && 1 < j < n || continue
+
+            # Parallel bridges
+            if (Hbonds[i-1, j] && Hbonds[j, i+1]) || (Hbonds[j-1, i] && Hbonds[i, j+1])
+                Parallel_Bridge[i, j] = true
+            end
+
+            # Antiparallel bridges
+            if (Hbonds[i, j] && Hbonds[j, i]) || (Hbonds[i-1, j+1] && Hbonds[j-1, i+1])
+                Antiparallel_Bridge[i, j] = true
+            end
+        end
     end
+
     return Parallel_Bridge, Antiparallel_Bridge
 end
+
 
 function get_strands(Hbonds::AbstractMatrix{Bool})
     Parallel_Bridge, Antiparallel_Bridge = get_bridges(Hbonds)
