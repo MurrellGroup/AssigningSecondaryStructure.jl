@@ -39,4 +39,4 @@ The output is vectors of integers:
 
 ## Acknowledgements
 
-This package was originally ported from the [PyDSSP](https://github.com/ShintaroMinami/PyDSSP) package, created by Shintaro Minami. The code has since been rewritten to look more like the 1983 paper (Kabsch W and Sander C), and to be more Julian, understandable, and efficient, at the cost of it no longer being differentiable like the PyDSSP version. The time complexity is still quadratic, so it may be slow for larger proteins. We plan on making a more efficient version with k-d trees.
+This package was originally ported from the [PyDSSP](https://github.com/ShintaroMinami/PyDSSP) package, created by Shintaro Minami. The code has since been rewritten to look more like the 1983 paper (Kabsch W and Sander C), and to be more Julian, understandable, and efficient, at the cost of it no longer being differentiable like the PyDSSP version. The time complexity of assigning the secondary structure of a chain with $n$ residues is $O(n \log n)$.
