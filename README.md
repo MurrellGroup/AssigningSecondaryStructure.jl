@@ -15,7 +15,7 @@ The package is registered in the General registry, and can be installed from the
 
 ## Usage
 
-The `assign_secondary_structure` function takes a vector of atom coordinate arrays of size (3, 3, L). The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
+The `assign_secondary_structure` function takes a vector of atom coordinate arrays of size `(3, 3, L)`. The first axis is for the x, y, and z coordinates, the second axis is for the atom types (N, CA, C), and the third axis is for the residues.
 
 ```julia
 julia> using BioStructures
@@ -31,6 +31,11 @@ julia> assign_secondary_structure(coords_vector) # 2 chains
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
  [1, 1, 1, 1, 3, 3, 3, 3, 3, 3  …  2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
 ```
+
+The output is vectors of integers:
+- `1`: loop
+- `2`: helix
+- `3`: strand
 
 ## Acknowledgements
 
