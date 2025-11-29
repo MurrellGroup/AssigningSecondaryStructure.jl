@@ -17,7 +17,7 @@ function get_oxygen_positions(coords::Array{T,3}) where T<:Real
     NC_vec = C_pos - N_pos
     CO_vec = T(CO_DISTANCE) * normalize_cols(normalize_cols(CαC_vec) + normalize_cols(NC_vec))
     O_pos = C_pos + CO_vec
-    return [O_pos fill(T(NaN), 3)]
+    return [O_pos fill(T(Inf), 3)]
 end
 
 function get_hydrogen_positions(coords::Array{T,3}) where T<:Real
@@ -26,7 +26,7 @@ function get_hydrogen_positions(coords::Array{T,3}) where T<:Real
     CαN_vec = N_pos - Cα_pos
     NH_vec = T(NH_DISTANCE) * normalize_cols(normalize_cols(CN_vec) + normalize_cols(CαN_vec))
     H_pos = N_pos + NH_vec
-    return [fill(T(NaN), 3) H_pos]
+    return [fill(T(Inf), 3) H_pos]
 end
 
 using NearestNeighbors
